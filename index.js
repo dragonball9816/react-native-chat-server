@@ -73,7 +73,14 @@ wss.on('connection', function connection(ws, req) {
         ws.send(JSON.stringify(data));
         break;
       case 'send-text':
-        sendText(msg.sessionId, msg.receiver, msg.message);
+        var data = {
+          cmd: 'send-text',
+          receiver: msg.receiver,
+          text: msg.text,
+          time: Date.now(),
+        };
+        ws.send(JSON.stringify(data));
+        sendText(msg.sessionId, msg.receiver, msg.text, data.time);
         break;
     }
   });
@@ -111,13 +118,14 @@ function sendBroadcast(sender, data) {
   }
 }
 
-function sendText(sender, receiver, text) {
+function sendText(sender, receiver, text, time) {
   for (var i = 0; i < clients.length; i++) {
     if (clients[i].sessionId == receiver) {
       var data = {
         cmd: 'receive-text',
         sender: sender,
         text: text,
+        time: time,
       };
       clients[i].socket.send(JSON.stringify(data));
       return true;
